@@ -1,0 +1,47 @@
+---
+title: "Statistical Inference - EDA"
+author: "Gaurav Tripathi"
+output: pdf_document
+---
+
+# Loading of and EDA using ToothGrowth data
+
+Following code imports the data and performs EDA on it to study the impact of Supplement Type and Dosage (in milligram) on Tooth Length.
+
+```{r, fig.height=3, fig.width=6, fig.cap="Correlation of Dosage and Tooth Length"}
+library(datasets)
+library(ggplot2)
+
+# Plot Tooth length vs. Dosage (mg) split by Supplement Type (OJ or VC)
+ggplot(data=ToothGrowth, aes(x=as.factor(dose), y=len, fill=supp)) +
+     geom_bar(stat="identity",) + facet_grid(. ~ supp) + xlab("Dosage (milligram)") +
+     ylab("Tooth length") + guides(fill=guide_legend(title="Supplement type"))
+```
+
+The following observations can be made:
+
+- There is a positive correlation between Dosage (mg) and Tooth length. Hence, as Dosage of supplement increases, there is an observed increase in Tooth Length (Note, that this is not Causative - We cannot say for sure that Tooth Length is higher due to Higher Doses)
+- In case of OJ supplement, the increase in Tooth Length when dosage changes from 0.5 to 1mg is almost same as that in case of VC supplement. But the increase in Tooth Length caused by increase in OJ dosage from 1 to 2mg is lesser than the increase in Tooth Length caused by same dosage change for VC supplement
+
+We can further build a linear regression model to Validate the correlation results, as follows:
+
+```{r}
+# Validate the correlation results with a linear model and summarize results
+fit <- lm(len ~ dose + supp, data = ToothGrowth)
+summary(fit)
+```
+
+Observations:
+
+- Adjusted R-square = 0.693 - Which means 69.3% of the data is explained by this model
+- P-value for both 'dose' and 'suppVC' variables < 0.05, which means both are significant
+- Coefficient for 'dose' is 9.76, which validates the correlation observed before (Increase in dose by 1mg would increase the Tooth Length by 9.76 units)
+- Coefficient for 'suppVC' is -3.70, which indicates that if dosage is same between OJ and VC, administering VC would have a negative impact on Tooth Length by 3.7 units
+
+# 95% Confidence Intervals
+
+The following code gets the 95% Confidence Intervals for the variables and the intercept:
+```{r}
+confint(fit)
+```
+Interpretation: It means that if we collect different random set of data and estimate parameters of the linear model each time, 95% of the times, the coefficient estimates will be in these ranges. For each variable, intercept, dose and suppVC, the null hypothesis H0 is that the coefficients are zero, meaning that Tooth Length variation is not explained by these variables. But since all p-values are less than 0.05, we reject H0.
